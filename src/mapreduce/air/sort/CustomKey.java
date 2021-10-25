@@ -43,6 +43,12 @@ public class CustomKey implements WritableComparable<CustomKey>{
 		year = WritableUtils.readString(in);
 		month = in.readInt();
 	}
+	
+	@Override
+	public String toString() {
+		return (new StringBuffer()).append(year).append(",").append(month).toString();
+	}
+
 	//네트워크로 복합키를 전송하기 위해 직렬화할때 호출되는 메소드
 	@Override
 	public void write(DataOutput out) throws IOException {

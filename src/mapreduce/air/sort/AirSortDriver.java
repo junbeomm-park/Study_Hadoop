@@ -35,12 +35,21 @@ public class AirSortDriver extends Configured implements Tool{
 	
 		// 1. 객체생성
 		//Configuration conf = new Configuration();
-		Job job = new Job(getConf(), "airoption");
+		Job job = new Job(getConf(), "air_sort");
+		
+		
 		
 		// 2. job을 처리하기 위해 필요한 클래스를 등록
 		job.setMapperClass(AirSortMapper.class);
 		job.setReducerClass(AirSortReducer.class);
 		job.setJarByClass(AirSortDriver.class);
+		
+		//shuffle할때 사용할 클래스를 사용자정의 클래스가 실행되도록 등록하기
+		job.setPartitionerClass(AirSortPatitioner.class);
+		job.setGroupingComparatorClass(GroupKeyComparator.class);
+		job.setSortComparatorClass(CustomkeyComparator.class);
+		job.setMapOutputKeyClass(CustomKey.class);
+		job.setMapOutputValueClass(IntWritable.class);
 		
 		// 3. hdfs에서의 input/output
 		job.setInputFormatClass(TextInputFormat.class);

@@ -9,7 +9,7 @@ public class AirSortPatitioner extends Partitioner<CustomKey, IntWritable>{
 	@Override
 	public int getPartition(CustomKey key, IntWritable value, int numPartitions) {
 
-		return key.getYear().hashCode() & numPartitions;
+		return key.getYear().hashCode() % numPartitions;
 	}
 
 }
