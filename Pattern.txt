@@ -1,0 +1,20 @@
+[정규표현식]
+텍스트안에서 특정 형식의 문자열을 추출하거나 검색,검사 할때 사용하는 특수문자로 만들어진 패턴
+
+1. JavaAPI
+   1) String클래스의 matches메소드 : 매개변수로 전달한 정규표현식에 일치하는 문자열의 유무를 boolean으로 리턴
+   2) java.util.regex 패키지의 클래스를 활용
+      - Pattern클래스 : 패턴을 정의하고 작업할 수 있도록 Matcher클래스를 만들어 내는 기능
+      
+        ① compile() : 정규표현식을 인식시켜서 패턴객체를 생성
+        			  Pattern.CASE_INSENSITIVE - 대소문자 적용하지 않는다는 의미
+        			  
+        ② matcher() : compile된 패턴과 문자열을 매칭시켜서 여러 가지 기능을 적용할 수 있는 
+        			  Matcher클래스를 생성
+        			  
+     - Matcher 클래스 : 패턴과 일치하는 문자열을 관리하는 클래스
+       ① find() : 패턴에 일치하는 문자열이 있는지 찾기(true or false 리턴)
+       ② start() : 패턴과 일치하는 문자열의 start index
+                   => 여러 개가 있으면 첫 번째 찾은 문자열의 시작index를 리턴
+       ③ end() : 패턴과 일치하는 처음 찾은 문자열의 end index +1
+       ④ group() : 패턴과 일치하는 문자열을 리턴(일치하는 문자를 추출)
