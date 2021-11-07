@@ -1,0 +1,96 @@
+[Mapper]
+ => 데이터를 분류하는 역할
+ 1. Mapper클래스를 상속한다.
+ 	=> mapper로 전달될 input 데이터의 key,value타입 mapper의 실행결과로 출력될 output데이터의
+ 	   key와 value타입을 정의
+ 	   
+ 2. map메소드를 오버라이딩해서 map작업을 어떤 방식으로 처리할 것인지 내용을 직접 구현
+    => 입력된 값을 분석하기 위한 메소드
+    => 입력된 데이터에 조건을 적용해서 원하는 데이터를 추출하기 위한 반복작업 수행
+    1) map메소드의 매개변수
+       입력데이터 키, 입력값, Context
+       Context
+       맵리듀스 작업을 수행하며 맵메소드의 실행결과를 프레임워크 내부에서 처리하는 다른 컴포넌트로 전달
+       즉, 출력데이터를 기록하고 shuffle단으로 넘기고 리듀서로 내보내는 작업을 내부에서 처리할 객체
+       프레임워크 내부에서 기본작업을 처리하는 객체
+       내부에서 머신들끼리 통신할 때 필요한 여러가지 정보를 갖고 있는 객체
+       
+       
+       
+       
+[Reducer]
+ => 데이터를 집계하는 역할
+ 1. Reducer클래스를 상속
+    => reducer로 전달되는 input데이터의 key,value타입 , reducer의 실행결과로 출력될 output데이터의
+       key,value타입을 명시
+       
+ 2. reduce메소드를 오버라이딩
+ 	=> key,value,Context객체가 전달
+ 	=> Mapper와 동일
+ 	=> reducer로 전달되는 value의 타입이 Iterable<IntWritable>
+ 	   Iterable 즉, 입력값들이 Iterable의 형태로 전달
+ 	   {1,1,1,1,1,1,......} 값에서 한 개의 value타입은 IntWritalbe이지만 여러 개가 전달되므로
+ 	   반복작업을 수행해야 하고 여러 개가 전달 되는 것을 Iterable의 형태로 전달받는다.
+ 	   
+
+
+[Driver]
+ => 맵리듀스를 실행하기 위한 작업을 처리하는 클래스
+ 1. 맵리듀스를 처리하기 위한 job을 생성
+ 2. 실제 job을 처리하기 위한 클래스가 어떤 클래스인지 등록
+    => Mapper, Reducer, Driver클래스가 어떤 클래스인지 우리가 작성한 클래스를 등록
+ 3. HDFS에서 읽고 쓸 input데이터와 output데이터의 포맷을 정의
+ 	=> 텍스트 파일의 형태로 input/output을 처리
+ 4. 리듀서 출력데이터에 대한 키와 value타입을 정의
+ 5. hdfs에 저장된 파일을 읽고 쓸 수 있도록 path를 정의
+ 6. job실행
+ 	   
+ 	   
+ 	   
+[사용자정의 옵션을 활용]
+ 1. Mapper
+ 	- 환경설정 정보에서 사용자가 입력한 옵션정보를 읽기 위해서 setup메소드를 오버라이딩해서 처리
+ 	- map메소드 내부에서 값에 따라 다르게 동작할 수 있게 구현
+ 2. Reducer
+ 	- 기존과 동일
+ 3. Diver
+ 	- 사용자가 -D옵션을 이용해서 입력한 옵션값을 프로그램 안에서 사용할 수 있도록 즉, Mapper가 사용할 수 있도록 전달
+ 	1) Configured(클래스)와 Tool(인터페이스)을 상속
+ 	   => Configured는 환경설정 정보를 활용해야 하므로
+ 	   => Tool은 사용자 정의 옵션을 사용하기 위해서
+ 	   => 사용자가 입력한 옵션과 input,output경로가 입력된 기존 명령행매개변수를 구분해서 전달해야 하므로
+ 	   
+ 	2) run메소드를 오버라이딩
+ 	   => run메소드 내부에서 Driver에서 구현했던 모든 코드를 구현
+ 	   => GenericOptionParser를 이용해서 사용자가 입력한 옵션(특수옵션)과 일반옵션을 분리해서 
+ 	   	  환경설정 정보에 등록하도록 처리해야 한다.
+ 	   	  이 작업이 완료되어야 Mapper에서 환경설정정보에서 값을 꺼내서 사용할 수 있다.
+ 	   	  
+ 	3) main메소드에서 run이 실행되도록 호출
+ 	   => run은 직접 호출하지 않고 ToolRunner클래스 실행될 메소드로 run을 등록해야 한다.
+ 	   	  그래야 스케쥴러에 의해 호출이 된다.
+ 	   
+
+[MultipleOutputs활용해서 출력파일 생성]
+=> 한 개의 입력데이터를 이용해서 여러 개의 output을 만들고 싶은 경우
+
+	1. Mapper
+	   => GenericOptionParser작업과 동일하게 map메소드를 구성하고 구분할 수 있도록 key에 각 상황별 문자추가
+	2. Reducer
+	   => Mapper에서 넘겨준 데이터에서 구분자를 기준으로 분리해서 합산
+	   => 개별 output이 생성될 수 있도록 처리
+	   1) setup : Reducer객체가 처음 실행될때 한 번 호출되는 메소드
+	   			  MultipleOutputs객체생성
+	   			  
+	   2) reduce : 각 상황별로 write를 호출해서 출력될 수 있도록 처리
+	   			   up,down,equal
+	   			   
+	   3) cleanUp : Reducer의 작업이 종료될때 한 번 호출되는 메소드
+	                MultipleOutputs객체를 해제(반드시 처리)
+	3. Driver
+	   => MultipleOutputs으로 출력될 경로를 Path에 설정
+	      prefix로 구분문자열을 정의
+		   
+ 	   
+ 	   
+ 	   
